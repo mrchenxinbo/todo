@@ -16,7 +16,9 @@ init(State) ->
             {bare, true},                 % The task can be run by the user, always true
             {deps, ?DEPS},                % The list of dependencies
             {example, "rebar3 todo"}, % How to use the plugin
-            {opts, []},                   % list of options understood by the plugin
+            {opts, [                 % list of options understood by the plugin
+            {deps, $d, "deps", undefined, "also run against dependencies"}
+]},
             {short_desc, "true"},
             {desc, "true"}
     ]),
@@ -76,7 +78,7 @@ discovery_type(State) ->
         undefined -> project;
         _ -> deps
     end.
-    
+
 -spec format_error(any()) ->  iolist().
 format_error(Reason) ->
     io_lib:format("~p", [Reason]).
