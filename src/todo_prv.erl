@@ -3,7 +3,7 @@
 -export([init/1, do/1, format_error/1]).
 
 -define(PROVIDER, todo).
--define(DEPS, [app_discovery]).
+-define(DEPS, [install_deps]).
 
 %% ===================================================================
 %% Public API
@@ -25,7 +25,11 @@ init(State) ->
 
 -spec do(rebar_state:t()) -> {ok, rebar_state:t()} | {error, string()}.
 do(State) ->
-    lists:foreach(fun check_todo_app/1, rebar_state:project_apps(State)),
+    Apps = case discovery_type(State) of
+        project -> rebar_state:project_apps(State);
+        deps -> rebar_state:project_apps(State) ++ lists:usort(rebar_state:all_deps(State))
+    end,
+    lists:foreach(fun check_todo_app/1, Apps),
     {ok, State}.
 
 check_todo_app(App) ->
@@ -65,6 +69,14 @@ display_todos(App, FileMatches) ->
      end || {Mod, TODOs} <- FileMatches],
     ok.
 
+
+discovery_type(State) ->
+    {Args, _} = rebar_state:command_parsed_args(State),
+    case proplists:get_value(deps, Args) of
+        undefined -> project;
+        _ -> deps
+    end.
+    
 -spec format_error(any()) ->  iolist().
 format_error(Reason) ->
     io_lib:format("~p", [Reason]).
